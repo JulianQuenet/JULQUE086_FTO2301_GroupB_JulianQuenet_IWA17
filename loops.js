@@ -18,32 +18,52 @@ const getDaysInMonth = (date) =>
 
 // Only edit below
 
-const createArray = (input) => {
-  const result = [];
-  result.length = input;
-  return result;
-};
-
 const createData = () => {
+  //Getting the first day of the month
   const ref = new Date();
-  let day = new Date(ref.getFullYear(), ref.getMonth());
+  const day = new Date(ref.getFullYear(), ref.getMonth());
+  const firstDay = day.getDay();
+  //If first day is a Sunday i.e(0) let it equal 7
+  if (firstDay === 0) {
+    firstDay = 7;
+  }
+
+  //Getting the last day of the month
+  const lastDayRef = new Date(ref.getFullYear(), ref.getMonth() + 1, 0);
+  const lastDay = lastDayRef.getDay();
+
   let monthDays = getDaysInMonth(ref);
-  let weeks = createArray(5);
+  let weekCount = 1;
+  let weeks = [];
   let values = [];
 
-  for (let i = 1; i < day.getDay(); i++) {
+  for (let i = 1; i < firstDay; i++) {
     values.push("");
   }
   for (let i = 0; i < monthDays; i++) {
     values.push(`${i + 1}`);
   }
-  for (let i = 0; i < weeks.length; i++) {
-    weeks[i] = `Week ${i + 1}`;
+
+  //If last day of month is not a Sunday, push '' for the remaining days of week until Sunday
+  if (lastDay !== 0) {
+    for (let i = lastDay; i < 7; i++) {
+      values.push("");
+    }
   }
+
+  //Making the week count dynamic, so after every 7 days a new week is added
+  for (let i = 0; i < values.length; i++) {
+    if (i % 7 === 0) {
+      weeks.push(`Week ${weekCount}`);
+      weekCount++;
+    }
+  }
+
+  //Combining the values array with the weeks array
   let result = [];
   let weekIndex = 0;
   for (let i = 0; i < values.length; i++) {
-    if (i % 7 === 0 || i == 0) {
+    if (i % 7 === 0) {
       result.push(weeks[weekIndex]);
       weekIndex++;
     }
@@ -59,9 +79,7 @@ const addCell = (classString, value) => {
 };
 
 const createHtml = (data) => {
-  let newT = data;
-  let cell = "";
-  let newCell = cell;
+  const newT = data;
   const today = new Date().getDate();
   const modifiers = {
     weekend: "table__cell_weekend",
@@ -70,12 +88,16 @@ const createHtml = (data) => {
     today: "table__cell_today",
   };
 
+  let cell = "";
+  let newCell = cell;
+  let styleCount = 1;
+
   for (let i = 0; i < newT.length; i++) {
     let classString = "";
     let styling = "";
-    if (i <= 7 || (i > 15 && i <= 23) || (i > 31 && i <= 40)) {
+    if (styleCount % 2 === 0) {
       styling = modifiers.alternate;
-    } else styling = "";
+    }
     if (i % 8 == 7 || i % 8 == 6) {
       classString = modifiers.weekend;
     }
@@ -85,10 +107,12 @@ const createHtml = (data) => {
     }
     if (newT[i] == today) {
       classString = modifiers.today;
+      styling = "";
     }
     cell += addCell(`${classString} ${styling}`, newT[i]);
     if (i % 8 == 7) {
       cell += `<tr>${newCell}</tr>`;
+      styleCount++;
     }
   }
 
@@ -104,3 +128,6 @@ document.querySelector("[data-title]").innerText = `${
 
 const data = createData();
 document.querySelector("[data-content]").innerHTML = createHtml(data);
+
+const title = document.querySelector("[data-title]");
+title.style.textAlign = "center";
